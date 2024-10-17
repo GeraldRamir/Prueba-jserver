@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulario con JSON Server</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .form-container {
+            width: 300px;
+            margin: 0 auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <h2>Formulario de Usuario</h2>
+        <form id="userForm">
+            <label for="name">Nombre:</label><br>
+            <input type="text" id="name" name="name" required><br><br>
+            <label for="email">Correo electrónico:</label><br>
+            <input type="email" id="email" name="email" required><br><br>
+            <button type="submit">Enviar</button>
+        </form>
+
+        <h2>Lista de Usuarios</h2>
+        <table id="userTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Email</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Aquí se mostrarán los usuarios -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('userForm');
+            const userTable = document.getElementById('userTable').querySelector('tbody');
+
+            // Función para agregar un usuario a la tabla
+            function addUserToTable(user) {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${user.id}</td>
+                    <td>${user.name}</td>
+                    <td>${user.email}</td>
+                `;
+                userTable.appendChild(row);
+            }
+
+            // Función para cargar usuarios desde JSON Server
+            function loadUsers() {
+                fetch('http://localhost:4000/users')
+                    .then(response => response.json())
+                    .then(users => {
+                        users.forEach(user => addUserToTable(user));
+                    })
+                    .catch(error => console.error('Error cargando usuarios:', error));
+            }
+
+            // Evento de envío del formulario
+            form.addEventListener('submit', function (event) {
+                event.preventDefault();
+                
+                const name = document.getElementById('name').value;
+                const email = document.getElementById('email').value;
+
+                const newUser = { name, email };
+
+                // Enviar datos al servidor JSON
+                fetch('http://localhost:4000/users', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(newUser)
+                })
+                .then(response => response.json())
+                .then(user => {
+                    // Agregar el nuevo usuario a la tabla
+                    addUserToTable(user);
+                    form.reset();
+                })
+                .catch(error => console.error('Error enviando el usuario:', error));
+            });
+
+            // Cargar usuarios cuando la página esté lista
+            loadUsers();
+        });
+    </script>
+</body>
+</html>
